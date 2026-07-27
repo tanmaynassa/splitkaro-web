@@ -15,13 +15,31 @@ export default function Split({ user, flatmates }) {
   const [showSetupPrompt, setShowSetupPrompt] = useState(false)
 
   useEffect(() => {
-    const data = sessionStorage.getItem('splitkaro_parsed')
+    // Check URL params first (from iOS Shortcut)
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlData = urlParams.get('data')
+
+    let data
+    if (urlData) {
+      try {
+        data = JSON.parse(atob(urlData))
+        sessionStorage.setItem('splitkaro_parsed', JSON.stringify(data))
+        // Clean URL
+        window.history.replaceState({}, '', '/split')
+      } catch (e) {
+        console.error('Failed to decode URL data:', e)
+      }
+    }
+
+    if (!data) {
+      const stored = sessionStorage.getItem('splitkaro_parsed')
+      if (stored) data = JSON.parse(stored)
+    }
+
     if (data) {
-      const p = JSON.parse(data)
-      setParsed(p)
-      // Default all items to 'shared'
+      setParsed(data)
       const defaultTags = {}
-      p.items.forEach(item => { defaultTags[item.sr] = 'shared' })
+      data.items.forEach(item => { defaultTags[item.sr] = 'shared' })
       setTags(defaultTags)
     } else {
       navigate('/')
