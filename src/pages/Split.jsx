@@ -5,9 +5,10 @@ import { apiCall, isLoggedIn } from '../utils/api'
 export default function Split({ user, flatmates }) {
   const navigate = useNavigate()
   const [parsed, setParsed] = useState(null)
-  const [tags, setTags] = useState({}) // {sr: 'shared' | 'mine' | flatmate_id | 'split:id1,id2'}
-  const [restAmong, setRestAmong] = useState('everyone') // 'everyone' | 'custom'
-  const [restPeople, setRestPeople] = useState([]) // IDs of people sharing 'rest'
+  const [tags, setTags] = useState({})
+  const [restAmong, setRestAmong] = useState('everyone')
+  const [restPeople, setRestPeople] = useState([])
+  const [paidBy, setPaidBy] = useState('mine') // 'mine' or flatmate splitwise_user_id
   const [confirming, setConfirming] = useState(false)
   const [done, setDone] = useState(false)
   const [doneData, setDoneData] = useState(null)
@@ -200,8 +201,22 @@ export default function Split({ user, flatmates }) {
           parsed,
           tags,
           rest_among: restAmong === 'custom' ? restPeople : null,
+          paid_by: paidBy,
         }),
       })
+
+      // Save to local history
+      try {
+        const existing = JSON.parse(localStorage.getItem('sk_history') || '[]')
+        const entry = {
+          description: parsed.items.slice(0, 2).map(i => i.name.split(' ')[0]).join(', '),
+          date: parsed.order_date || new Date().toLocaleDateString('en-IN'),
+          total: parsed.total,
+          owes: result.owes,
+        }
+        localStorage.setItem('sk_history', JSON.stringify([entry, ...existing].slice(0, 20)))
+      } catch (e) {}
+
       setDone(true)
       setDoneData(result)
     } catch (e) {
@@ -260,10 +275,40 @@ export default function Split({ user, flatmates }) {
       </div>
 
       {parsed.extra_charges > 0 && (
-        <p className="text-xs text-surface-500 mb-4 text-center">
+        <p className="text-xs text-surface-500 mb-3 text-center">
           includes ₹{parsed.extra_charges} delivery/fees
         </p>
       )}
+
+      {/* Who paid toggle */}
+      <div className="mb-4 p-3 bg-surface-50 border border-surface-200 rounded-xl">
+        <p className="text-xs font-medium text-surface-600 mb-2">Who paid the full bill?</p>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setPaidBy('mine')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+              paidBy === 'mine'
+                ? 'bg-brand-600 text-white border-brand-600'
+                : 'bg-white text-surface-700 border-surface-200'
+            }`}
+          >
+            You
+          </button>
+          {flatmates.map(f => (
+            <button
+              key={f.splitwise_user_id}
+              onClick={() => setPaidBy(String(f.splitwise_user_id))}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                paidBy === String(f.splitwise_user_id)
+                  ? 'bg-brand-600 text-white border-brand-600'
+                  : 'bg-white text-surface-700 border-surface-200'
+              }`}
+            >
+              {f.name.split(' ')[0]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Item list */}
       <div className="space-y-2">
