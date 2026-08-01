@@ -12,10 +12,10 @@ const FRAMES = [
   { screen: 'upload', label: 'Invoice downloaded from Zepto', tags: {}, showSummary: false, showDone: false },
   { screen: 'parsing', label: 'Reading invoice...', tags: {}, showSummary: false, showDone: false },
   { screen: 'items', label: 'Items extracted', tags: { 1: 'shared', 2: 'shared', 3: 'shared', 4: 'shared' }, showSummary: false, showDone: false },
-  { screen: 'items', label: 'Milk is yours', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'shared' }, showSummary: false, showDone: false },
-  { screen: 'items', label: 'Karare is Kalash\'s', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: false, showDone: false },
-  { screen: 'items', label: 'Split calculated', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: true, showDone: false },
-  { screen: 'done', label: 'Logged to Splitwise', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: true, showDone: true },
+  { screen: 'items', label: 'Milk tagged as yours', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'shared' }, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Karare is Rohan\'s', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'rohan' }, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Split calculated', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'rohan' }, showSummary: true, showDone: false },
+  { screen: 'done', label: 'Logged to Splitwise', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'rohan' }, showSummary: true, showDone: true },
 ]
 
 const DURATIONS = [1200, 1000, 1500, 900, 900, 1200, 2200]
@@ -23,7 +23,7 @@ const DURATIONS = [1200, 1000, 1500, 900, 900, 1200, 2200]
 const TAG_STYLE = {
   shared: { label: 'Shared', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
   mine:   { label: 'You',    bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
-  kalash: { label: 'Kalash', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
+  kalash: { label: 'Rohan', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
 }
 
 export default function InteractiveDemo({ onTryNow }) {
@@ -48,7 +48,7 @@ export default function InteractiveDemo({ onTryNow }) {
   const shared = ITEMS.filter(i => frame.tags[i.sr] === 'shared')
   const sharedEach = shared.reduce((s, i) => s + i.amount, 0) / 2
   const myTotal = ITEMS.filter(i => frame.tags[i.sr] === 'mine').reduce((s, i) => s + i.amount, 0) + sharedEach
-  const kalashTotal = ITEMS.filter(i => frame.tags[i.sr] === 'kalash').reduce((s, i) => s + i.amount, 0) + sharedEach
+  const kalashTotal = ITEMS.filter(i => frame.tags[i.sr] === 'rohan').reduce((s, i) => s + i.amount, 0) + sharedEach
 
   return (
     <div
@@ -67,7 +67,7 @@ export default function InteractiveDemo({ onTryNow }) {
       {/* Top bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '3px 10px', borderRadius: 20 }}>
-          ▶ See how it works
+          ▶ Demo
         </span>
         <span style={{ fontSize: 11, color: '#9ca3af', background: 'rgba(255,255,255,0.8)', padding: '3px 10px', borderRadius: 20 }}>
           Tap to try with your bill →
@@ -149,7 +149,7 @@ export default function InteractiveDemo({ onTryNow }) {
                 </div>
                 <div style={{ width: 1, background: '#f3f4f6' }} />
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 11, color: '#9ca3af' }}>Kalash</div>
+                  <div style={{ fontSize: 11, color: '#9ca3af' }}>Rohan</div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>₹{Math.round(kalashTotal)}</div>
                 </div>
               </div>
@@ -163,7 +163,7 @@ export default function InteractiveDemo({ onTryNow }) {
             <span style={{ fontSize: 40 }}>✅</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Logged to Splitwise</span>
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '10px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: 11, color: '#6b7280' }}>Kalash owes you</div>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>Rohan owes you</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#16a34a' }}>₹{Math.round(kalashTotal)}</div>
             </div>
             <span style={{ fontSize: 11, color: '#9ca3af' }}>30 seconds. No math. No manual entry.</span>

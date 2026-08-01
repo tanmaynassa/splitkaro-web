@@ -109,8 +109,11 @@ export default function Landing({ user, flatmates }) {
         <h1 className="text-3xl font-bold text-surface-900">
           🛒 Split<span className="text-brand-600">Karo</span>
         </h1>
-        <p className="text-surface-500 mt-1 text-sm">
-          grocery bills → splitwise, in 30 seconds
+        <p className="text-surface-600 mt-1 text-sm font-medium">
+          For flatmates splitting Zepto & Instamart bills on Splitwise
+        </p>
+        <p className="text-surface-500 mt-1 text-xs">
+          Tired of doing the math and manually adding expenses every order? This does it for you.
         </p>
       </div>
 
@@ -257,7 +260,10 @@ export default function Landing({ user, flatmates }) {
               </div>
             ))}
           </div>
-          <p className="text-xs text-surface-500 text-center mt-8">Free forever. No account needed to try.</p>
+          <div className="mt-8 text-center space-y-1">
+            <p className="text-xs text-surface-500">Free forever. No SplitKaro account needed.</p>
+            <p className="text-xs text-surface-400">Requires a Splitwise account with your flatmates added.</p>
+          </div>
         </div>
       )}
     </div>
