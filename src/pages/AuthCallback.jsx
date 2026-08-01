@@ -42,7 +42,7 @@ export default function AuthCallback({ saveUser }) {
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <div className="text-5xl mb-4">❌</div>
         <h2 className="text-xl font-bold text-surface-900 mb-2">Connection failed</h2>
-        <p className="text-surface-200 mb-6">{error}</p>
+        <p className="text-surface-500 mb-6">{error}</p>
         <button
           onClick={() => navigate('/setup')}
           className="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium"

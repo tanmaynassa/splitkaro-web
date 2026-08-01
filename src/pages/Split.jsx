@@ -252,15 +252,15 @@ export default function Split({ user, flatmates }) {
     <div className="max-w-lg mx-auto px-4 py-6 pb-48">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate('/')} className="text-surface-200 text-sm">← Back</button>
+        <button onClick={() => navigate('/')} className="text-surface-500 text-sm">← Back</button>
         <h1 className="font-bold text-surface-900">
           {parsed.platform} — {parsed.order_date}
         </h1>
-        <span className="text-sm text-surface-200">₹{parsed.total}</span>
+        <span className="text-sm text-surface-500">₹{parsed.total}</span>
       </div>
 
       {parsed.extra_charges > 0 && (
-        <p className="text-xs text-surface-200 mb-4 text-center">
+        <p className="text-xs text-surface-500 mb-4 text-center">
           includes ₹{parsed.extra_charges} delivery/fees
         </p>
       )}
@@ -271,7 +271,7 @@ export default function Split({ user, flatmates }) {
           <div key={item.sr} className="border border-surface-200 rounded-xl p-3 flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <p className="font-medium text-surface-900 text-sm truncate">{item.name}</p>
-              <p className="text-xs text-surface-200">₹{item.amount}</p>
+              <p className="text-xs text-surface-500">₹{item.amount}</p>
             </div>
             <div className="flex items-center gap-2 ml-3">
               <button
@@ -353,7 +353,7 @@ export default function Split({ user, flatmates }) {
             <h3 className="font-semibold text-surface-900 mb-1">
               Split this item between:
             </h3>
-            <p className="text-sm text-surface-200 mb-4">
+            <p className="text-sm text-surface-500 mb-4">
               {parsed.items.find(i => i.sr === splitModal)?.name}
             </p>
             <div className="flex gap-2 flex-wrap mb-6">
@@ -395,7 +395,7 @@ export default function Split({ user, flatmates }) {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 text-center">
             <h3 className="font-semibold text-surface-900 text-lg mb-2">Connect Splitwise</h3>
-            <p className="text-sm text-surface-200 mb-6">
+            <p className="text-sm text-surface-500 mb-6">
               To log this split, connect your Splitwise account. Takes 1 minute.
             </p>
             <button
@@ -438,7 +438,7 @@ export default function Split({ user, flatmates }) {
                 const name = key === 'mine' ? 'You' : flatmates.find(f => f.splitwise_user_id == key)?.name.split(' ')[0] || ''
                 return (
                   <div key={key} className="text-center">
-                    <p className="text-xs text-surface-200">{name}</p>
+                    <p className="text-xs text-surface-500">{name}</p>
                     <p className="text-lg font-bold text-surface-900">₹{amount.toFixed(0)}</p>
                   </div>
                 )

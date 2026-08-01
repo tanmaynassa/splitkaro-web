@@ -49,7 +49,7 @@ export default function Landing({ user, flatmates }) {
         <h1 className="text-3xl font-bold text-surface-900">
           🛒 Split<span className="text-brand-600">Karo</span>
         </h1>
-        <p className="text-surface-200 mt-1 text-sm tracking-wide">
+        <p className="text-surface-500 mt-1 text-sm tracking-wide">
           grocery bills → splitwise, in 30 seconds
         </p>
       </div>
@@ -104,10 +104,10 @@ export default function Landing({ user, flatmates }) {
             <p className="text-surface-800 font-semibold text-lg">
               Upload grocery invoice
             </p>
-            <p className="text-surface-200 text-sm mt-2">
+            <p className="text-surface-500 text-sm mt-2">
               Tap here or drag & drop your PDF
             </p>
-            <p className="text-surface-200 text-xs mt-4">
+            <p className="text-surface-500 text-xs mt-4">
               Works with Zepto & Swiggy Instamart
             </p>
           </>
@@ -130,7 +130,7 @@ export default function Landing({ user, flatmates }) {
               <div className="w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold shrink-0">1</div>
               <div>
                 <p className="font-medium text-surface-800">Upload the invoice PDF</p>
-                <p className="text-sm text-surface-200">Download from Zepto or Instamart app, upload here</p>
+                <p className="text-sm text-surface-500">Download from Zepto or Instamart app, upload here</p>
               </div>
             </div>
             
@@ -138,7 +138,7 @@ export default function Landing({ user, flatmates }) {
               <div className="w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold shrink-0">2</div>
               <div>
                 <p className="font-medium text-surface-800">Tap to tag items</p>
-                <p className="text-sm text-surface-200">Tap each item to mark it as yours, a flatmate's, or shared</p>
+                <p className="text-sm text-surface-500">Tap each item to mark it as yours, a flatmate's, or shared</p>
               </div>
             </div>
             
@@ -146,13 +146,13 @@ export default function Landing({ user, flatmates }) {
               <div className="w-8 h-8 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-sm font-bold shrink-0">3</div>
               <div>
                 <p className="font-medium text-surface-800">Confirm — done</p>
-                <p className="text-sm text-surface-200">Split is calculated and logged to Splitwise automatically</p>
+                <p className="text-sm text-surface-500">Split is calculated and logged to Splitwise automatically</p>
               </div>
             </div>
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-xs text-surface-200">Free forever. No account needed to try.</p>
+            <p className="text-xs text-surface-500">Free forever. No account needed to try.</p>
           </div>
         </div>
       )}
