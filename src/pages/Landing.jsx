@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { uploadPDF, apiCall } from '../utils/api'
+import InteractiveDemo from '../components/InteractiveDemo'
 
 export default function Landing({ user, flatmates }) {
   const [dragging, setDragging] = useState(false)
@@ -162,6 +163,13 @@ export default function Landing({ user, flatmates }) {
               </span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Interactive demo — only for users not yet set up */}
+      {!user && (
+        <div className="mb-6">
+          <InteractiveDemo onTryNow={() => fileRef.current?.click()} />
         </div>
       )}
 
