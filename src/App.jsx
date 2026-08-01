@@ -4,6 +4,7 @@ import Landing from './pages/Landing'
 import Split from './pages/Split'
 import Setup from './pages/Setup'
 import AuthCallback from './pages/AuthCallback'
+import FeedbackButton from './components/FeedbackButton'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -30,19 +31,12 @@ export default function App() {
     <BrowserRouter>
       <div className="min-h-screen bg-white">
         <Routes>
-          <Route path="/" element={
-            <Landing user={user} flatmates={flatmates} />
-          } />
-          <Route path="/split" element={
-            <Split user={user} flatmates={flatmates} />
-          } />
-          <Route path="/setup" element={
-            <Setup user={user} saveUser={saveUser} saveFlatmates={saveFlatmates} />
-          } />
-          <Route path="/auth/callback" element={
-            <AuthCallback saveUser={saveUser} />
-          } />
+          <Route path="/" element={<Landing user={user} flatmates={flatmates} />} />
+          <Route path="/split" element={<Split user={user} flatmates={flatmates} />} />
+          <Route path="/setup" element={<Setup user={user} saveUser={saveUser} saveFlatmates={saveFlatmates} />} />
+          <Route path="/auth/callback" element={<AuthCallback saveUser={saveUser} />} />
         </Routes>
+        <FeedbackButton />
       </div>
     </BrowserRouter>
   )
