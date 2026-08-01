@@ -1,274 +1,186 @@
 import { useState, useEffect, useRef } from 'react'
 
-const DEMO_ITEMS = [
+const ITEMS = [
   { sr: 1, name: 'Cucumber English', amount: 41 },
   { sr: 2, name: 'Amul Milk', amount: 30 },
   { sr: 3, name: 'Amul Paneer x2', amount: 190 },
   { sr: 4, name: 'Too Yumm Karare', amount: 16 },
 ]
 
-const STEPS = [
-  { id: 'upload', duration: 1400 },
-  { id: 'parse', duration: 1200 },
-  { id: 'items', duration: 1800 },
-  { id: 'tag1', duration: 900 },
-  { id: 'tag2', duration: 900 },
-  { id: 'summary', duration: 1400 },
-  { id: 'done', duration: 2000 },
-  { id: 'reset', duration: 600 },
+// Each frame describes the full UI state at that moment
+const FRAMES = [
+  { screen: 'upload', label: 'Invoice downloaded from Zepto', tags: {}, showSummary: false, showDone: false },
+  { screen: 'parsing', label: 'Reading invoice...', tags: {}, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Items extracted', tags: { 1: 'shared', 2: 'shared', 3: 'shared', 4: 'shared' }, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Milk is yours', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'shared' }, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Karare is Kalash\'s', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: false, showDone: false },
+  { screen: 'items', label: 'Split calculated', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: true, showDone: false },
+  { screen: 'done', label: 'Logged to Splitwise', tags: { 1: 'shared', 2: 'mine', 3: 'shared', 4: 'kalash' }, showSummary: true, showDone: true },
 ]
 
-const TAGS = {
-  shared: { label: 'Shared', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
-  mine: { label: 'You', bg: 'bg-green-100', text: 'text-green-700', border: 'border-green-200' },
-  kalash: { label: 'Kalash', bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200' },
+const DURATIONS = [1200, 1000, 1500, 900, 900, 1200, 2200]
+
+const TAG_STYLE = {
+  shared: { label: 'Shared', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+  mine:   { label: 'You',    bg: '#F0FDF4', color: '#15803D', border: '#BBF7D0' },
+  kalash: { label: 'Kalash', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
 }
 
 export default function InteractiveDemo({ onTryNow }) {
-  const [step, setStep] = useState('upload')
-  const [visibleItems, setVisibleItems] = useState([])
-  const [tags, setTags] = useState({ 1: 'shared', 2: 'shared', 3: 'shared', 4: 'shared' })
-  const [showSummary, setShowSummary] = useState(false)
-  const [showDone, setShowDone] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [parsing, setParsing] = useState(false)
-  const stepRef = useRef(0)
+  const [frameIdx, setFrameIdx] = useState(0)
   const timerRef = useRef(null)
 
-  const runSequence = () => {
-    stepRef.current = 0
-
-    const next = () => {
-      const s = STEPS[stepRef.current]
-      if (!s) return
-
-      setStep(s.id)
-
-      if (s.id === 'upload') {
-        setUploading(true)
-        setParsing(false)
-        setVisibleItems([])
-        setTags({ 1: 'shared', 2: 'shared', 3: 'shared', 4: 'shared' })
-        setShowSummary(false)
-        setShowDone(false)
-      }
-      if (s.id === 'parse') {
-        setUploading(false)
-        setParsing(true)
-      }
-      if (s.id === 'items') {
-        setParsing(false)
-        setVisibleItems([])
-        let i = 0
-        const showNext = () => {
-          if (i < DEMO_ITEMS.length) {
-            setVisibleItems(prev => [...prev, DEMO_ITEMS[i]])
-            i++
-            setTimeout(showNext, 220)
-          }
-        }
-        showNext()
-      }
-      if (s.id === 'tag1') {
-        setTags(prev => ({ ...prev, 2: 'mine' }))
-      }
-      if (s.id === 'tag2') {
-        setTags(prev => ({ ...prev, 4: 'kalash' }))
-      }
-      if (s.id === 'summary') {
-        setShowSummary(true)
-      }
-      if (s.id === 'done') {
-        setShowDone(true)
-      }
-      if (s.id === 'reset') {
-        setShowDone(false)
-        setShowSummary(false)
-      }
-
-      stepRef.current++
-      timerRef.current = setTimeout(next, s.duration)
-    }
-
-    next()
-  }
-
   useEffect(() => {
-    const startDelay = setTimeout(runSequence, 600)
-    return () => {
-      clearTimeout(startDelay)
-      clearTimeout(timerRef.current)
+    const advance = (idx) => {
+      timerRef.current = setTimeout(() => {
+        const next = (idx + 1) % FRAMES.length
+        setFrameIdx(next)
+        advance(next)
+      }, DURATIONS[idx] ?? 1500)
     }
+    advance(0)
+    return () => clearTimeout(timerRef.current)
   }, [])
 
-  // Compute split for summary
-  const myItems = DEMO_ITEMS.filter(i => tags[i.sr] === 'mine')
-  const kalashItems = DEMO_ITEMS.filter(i => tags[i.sr] === 'kalash')
-  const shared = DEMO_ITEMS.filter(i => tags[i.sr] === 'shared')
+  const frame = FRAMES[frameIdx]
+
+  // Compute split
+  const shared = ITEMS.filter(i => frame.tags[i.sr] === 'shared')
   const sharedEach = shared.reduce((s, i) => s + i.amount, 0) / 2
-  const myTotal = myItems.reduce((s, i) => s + i.amount, 0) + sharedEach
-  const kalashTotal = kalashItems.reduce((s, i) => s + i.amount, 0) + sharedEach
+  const myTotal = ITEMS.filter(i => frame.tags[i.sr] === 'mine').reduce((s, i) => s + i.amount, 0) + sharedEach
+  const kalashTotal = ITEMS.filter(i => frame.tags[i.sr] === 'kalash').reduce((s, i) => s + i.amount, 0) + sharedEach
 
   return (
     <div
-      className="relative rounded-2xl overflow-hidden cursor-pointer select-none"
-      style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #f8faff 100%)', border: '1.5px solid #d1fae5' }}
       onClick={onTryNow}
+      style={{
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #f8faff 100%)',
+        border: '1.5px solid #d1fae5',
+        borderRadius: 16,
+        overflow: 'hidden',
+        cursor: 'pointer',
+        userSelect: 'none',
+        minHeight: 300,
+        padding: '0 0 12px',
+      }}
     >
-      {/* Label */}
-      <div className="absolute top-3 left-3 right-3 flex justify-between items-center z-10">
-        <span className="text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-          ▶ Live demo
+      {/* Top bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#16a34a', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '3px 10px', borderRadius: 20 }}>
+          ▶ See how it works
         </span>
-        <span className="text-xs text-gray-400 bg-white/80 px-2.5 py-1 rounded-full">
+        <span style={{ fontSize: 11, color: '#9ca3af', background: 'rgba(255,255,255,0.8)', padding: '3px 10px', borderRadius: 20 }}>
           Tap to try with your bill →
         </span>
       </div>
 
-      <div className="pt-12 pb-4 px-4 min-h-[340px] flex flex-col">
+      {/* Content */}
+      <div style={{ padding: '0 14px', minHeight: 240 }}>
 
-        {/* Upload step */}
-        {(step === 'upload' || step === 'parse') && (
-          <div className="flex-1 flex flex-col items-center justify-center gap-4">
-            <div
-              className={`
-                w-20 h-20 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-sm
-                transition-all duration-500
-                ${uploading ? 'bg-white scale-110 shadow-md' : 'bg-white'}
-              `}
-              style={{ border: '1.5px solid #d1fae5' }}
-            >
-              <span className="text-3xl">📄</span>
-              <span className="text-xs font-medium text-gray-500">invoice.pdf</span>
+        {/* Upload screen */}
+        {frame.screen === 'upload' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220, gap: 12 }}>
+            <div style={{ width: 72, height: 72, background: 'white', borderRadius: 16, border: '1.5px solid #d1fae5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <span style={{ fontSize: 28 }}>📄</span>
+              <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 500 }}>zepto.pdf</span>
             </div>
-
-            {uploading && (
-              <div className="flex flex-col items-center gap-1 animate-pulse">
-                <div className="w-1 h-6 bg-green-400 rounded-full" />
-                <span className="text-xs text-green-600 font-medium">Uploading...</span>
-              </div>
-            )}
-
-            {parsing && (
-              <div className="flex flex-col items-center gap-2">
-                <div className="flex gap-1">
-                  {[0, 1, 2].map(i => (
-                    <div
-                      key={i}
-                      className="w-2 h-2 bg-green-400 rounded-full animate-bounce"
-                      style={{ animationDelay: `${i * 150}ms` }}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">Reading invoice...</span>
-              </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 6, height: 6, background: '#16a34a', borderRadius: '50%', animation: 'pulse 1s infinite' }} />
+              <span style={{ fontSize: 12, color: '#16a34a', fontWeight: 500 }}>Uploading invoice...</span>
+            </div>
           </div>
         )}
 
-        {/* Items + tagging step */}
-        {['items', 'tag1', 'tag2', 'summary'].includes(step) && (
-          <div className="flex-1 flex flex-col gap-2">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-semibold text-gray-600">Zepto — 12-07-2026</span>
-              <span className="text-xs text-gray-400">₹277</span>
+        {/* Parsing screen */}
+        {frame.screen === 'parsing' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220, gap: 12 }}>
+            <div style={{ width: 72, height: 72, background: 'white', borderRadius: 16, border: '1.5px solid #d1fae5', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <span style={{ fontSize: 28 }}>📄</span>
+              <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 500 }}>zepto.pdf</span>
+            </div>
+            <div style={{ display: 'flex', gap: 5 }}>
+              {[0, 1, 2].map(i => (
+                <div key={i} style={{ width: 7, height: 7, background: '#16a34a', borderRadius: '50%', opacity: 0.6 + i * 0.2 }} />
+              ))}
+            </div>
+            <span style={{ fontSize: 12, color: '#6b7280' }}>Reading items and prices...</span>
+          </div>
+        )}
+
+        {/* Items screen */}
+        {frame.screen === 'items' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Zepto — 12-07-2026</span>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>₹277</span>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              {DEMO_ITEMS.map(item => {
-                const isVisible = visibleItems.some(v => v.sr === item.sr)
-                const tag = tags[item.sr]
-                const tagStyle = TAGS[tag]
-
-                return (
-                  <div
-                    key={item.sr}
-                    className={`
-                      flex items-center justify-between rounded-xl px-3 py-2
-                      transition-all duration-400
-                      ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
-                    `}
-                    style={{
-                      background: tag === 'shared' ? 'white' : tag === 'mine' ? '#f0fdf4' : '#fff7ed',
-                      border: `1px solid ${tag === 'shared' ? '#e5e7eb' : tag === 'mine' ? '#bbf7d0' : '#fed7aa'}`,
-                      transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
-                    }}
-                  >
-                    <div>
-                      <p className="text-xs font-medium text-gray-800">{item.name}</p>
-                      <p className="text-xs text-gray-400">₹{item.amount}</p>
-                    </div>
-                    <span
-                      className={`
-                        text-xs font-semibold px-2.5 py-1 rounded-lg border
-                        transition-all duration-300
-                        ${tagStyle.bg} ${tagStyle.text} ${tagStyle.border}
-                      `}
-                    >
-                      {tagStyle.label}
-                    </span>
+            {ITEMS.map(item => {
+              const tag = frame.tags[item.sr] || 'shared'
+              const ts = TAG_STYLE[tag]
+              return (
+                <div key={item.sr} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  background: ts.bg, border: `1px solid ${ts.border}`,
+                  borderRadius: 10, padding: '7px 10px',
+                  transition: 'background 0.3s, border-color 0.3s',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 500, color: '#111827' }}>{item.name}</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af' }}>₹{item.amount}</div>
                   </div>
-                )
-              })}
-            </div>
-
-            {/* Live summary */}
-            {showSummary && (
-              <div
-                className="mt-2 rounded-xl px-3 py-2.5 flex justify-around items-center animate-fade-in"
-                style={{ background: 'white', border: '1px solid #d1fae5' }}
-              >
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">You</p>
-                  <p className="text-base font-bold text-gray-900">₹{Math.round(myTotal)}</p>
+                  <span style={{
+                    fontSize: 11, fontWeight: 600, color: ts.color,
+                    background: 'white', border: `1px solid ${ts.border}`,
+                    padding: '2px 8px', borderRadius: 6,
+                    transition: 'all 0.3s',
+                  }}>
+                    {ts.label}
+                  </span>
                 </div>
-                <div className="w-px h-8 bg-gray-100" />
-                <div className="text-center">
-                  <p className="text-xs text-gray-400">Kalash</p>
-                  <p className="text-base font-bold text-gray-900">₹{Math.round(kalashTotal)}</p>
+              )
+            })}
+
+            {frame.showSummary && (
+              <div style={{ display: 'flex', justifyContent: 'space-around', background: 'white', border: '1px solid #d1fae5', borderRadius: 10, padding: '8px 12px', marginTop: 4 }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#9ca3af' }}>You</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>₹{Math.round(myTotal)}</div>
+                </div>
+                <div style={{ width: 1, background: '#f3f4f6' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#9ca3af' }}>Kalash</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>₹{Math.round(kalashTotal)}</div>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Done step */}
-        {step === 'done' && (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3">
-            <div
-              className={`
-                flex flex-col items-center gap-2 transition-all duration-500
-                ${showDone ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
-              `}
-            >
-              <div className="text-4xl">✅</div>
-              <p className="text-sm font-semibold text-gray-900">Logged to Splitwise</p>
-              <div
-                className="rounded-xl px-4 py-2.5 text-center"
-                style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}
-              >
-                <p className="text-xs text-gray-500">Kalash owes you</p>
-                <p className="text-xl font-bold text-green-600">₹{Math.round(kalashTotal)}</p>
-              </div>
-              <p className="text-xs text-gray-400">30 seconds. No math. No Splitwise form.</p>
+        {/* Done screen */}
+        {frame.screen === 'done' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 220, gap: 10 }}>
+            <span style={{ fontSize: 40 }}>✅</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Logged to Splitwise</span>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '10px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 11, color: '#6b7280' }}>Kalash owes you</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: '#16a34a' }}>₹{Math.round(kalashTotal)}</div>
             </div>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>30 seconds. No math. No manual entry.</span>
           </div>
         )}
 
       </div>
 
       {/* Progress dots */}
-      <div className="flex justify-center gap-1.5 pb-4">
-        {['upload', 'items', 'tag1', 'summary', 'done'].map((s, i) => (
-          <div
-            key={s}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: step === s ? 16 : 5,
-              height: 5,
-              background: step === s ? '#16a34a' : '#d1fae5',
-            }}
-          />
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 5, paddingTop: 8 }}>
+        {FRAMES.map((_, i) => (
+          <div key={i} style={{
+            height: 4, borderRadius: 2,
+            width: i === frameIdx ? 14 : 4,
+            background: i === frameIdx ? '#16a34a' : '#d1fae5',
+            transition: 'all 0.3s',
+          }} />
         ))}
       </div>
     </div>
