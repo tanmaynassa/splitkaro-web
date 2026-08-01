@@ -39,9 +39,9 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
   }
 
   const toggleFriend = (friend) => {
-    const exists = selectedFlatmates.find(f => f.id === friend.id)
+    const exists = selectedFlatmates.find(f => f.splitwise_user_id === friend.id)
     if (exists) {
-      setSelectedFlatmates(prev => prev.filter(f => f.id !== friend.id))
+      setSelectedFlatmates(prev => prev.filter(f => f.splitwise_user_id !== friend.id))
     } else {
       const name = `${friend.first_name || ''} ${friend.last_name || ''}`.trim()
       setSelectedFlatmates(prev => [...prev, { 
@@ -49,6 +49,10 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
         name: name || 'Friend',
       }])
     }
+  }
+
+  const removeFlatmate = (swId) => {
+    setSelectedFlatmates(prev => prev.filter(f => f.splitwise_user_id !== swId))
   }
 
   const confirmFlatmates = async () => {
@@ -170,9 +174,13 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
               <p className="text-sm font-medium text-surface-800 mb-2">Selected:</p>
               <div className="flex gap-2 flex-wrap">
                 {selectedFlatmates.map(f => (
-                  <span key={f.splitwise_user_id} className="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium">
+                  <button
+                    key={f.splitwise_user_id}
+                    onClick={() => removeFlatmate(f.splitwise_user_id)}
+                    className="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-sm font-medium hover:bg-red-50 hover:text-red-600 transition-all"
+                  >
                     {f.name.split(' ')[0]} ✕
-                  </span>
+                  </button>
                 ))}
               </div>
             </div>
