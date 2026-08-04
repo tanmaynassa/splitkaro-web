@@ -199,6 +199,9 @@ export default function Split({ user, flatmates }) {
         }),
       })
 
+      // Save split snapshot for done screen before state changes
+      const splitSnapshot = splitResult
+
       // Save to local history
       try {
         const existing = JSON.parse(localStorage.getItem('sk_history') || '[]')
@@ -211,9 +214,9 @@ export default function Split({ user, flatmates }) {
         localStorage.setItem('sk_history', JSON.stringify([entry, ...existing].slice(0, 20)))
       } catch (e) {}
 
+      sessionStorage.removeItem('splitkaro_parsed')
+      setDoneData({ ...result, splitSnapshot })
       setDone(true)
-      setDoneData(result)
-      sessionStorage.removeItem('splitkaro_parsed') // clear so reconnect doesn't re-show this bill
     } catch (e) {
       // Token expired or invalid — redirect to reconnect Splitwise
       if (e.message?.includes('401') || e.message?.includes('Not authenticated') || e.message?.includes('Unauthorized')) {
@@ -252,38 +255,39 @@ export default function Split({ user, flatmates }) {
           ))}
         </div>
 
-        {/* Full breakdown */}
-        <div className="bg-surface-50 border border-surface-200 rounded-xl p-4 mb-6 text-left">
-          <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Bill breakdown</p>
-          {split?.personal_items?.length > 0 && (
-            <div className="mb-2">
-              <p className="text-xs text-surface-500 mb-1">Your items</p>
-              {split.personal_items.map(i => (
-                <div key={i.sr} className="flex justify-between text-sm py-0.5">
-                  <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
-                  <span className="text-surface-900 font-medium">₹{i.amount}</span>
-                </div>
-              ))}
+        {/* Breakdown from snapshot */}
+        {doneData?.splitSnapshot && (
+          <div className="bg-surface-50 border border-surface-200 rounded-xl p-4 mb-6 text-left">
+            <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Bill breakdown</p>
+            {(doneData.splitSnapshot.personal_items || []).length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs text-surface-500 mb-1">Your items</p>
+                {doneData.splitSnapshot.personal_items.map(i => (
+                  <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                    <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
+                    <span className="text-surface-900 font-medium">₹{i.amount}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {(doneData.splitSnapshot.shared_items || []).length > 0 && (
+              <div className="mb-2">
+                <p className="text-xs text-surface-500 mb-1">Shared</p>
+                {doneData.splitSnapshot.shared_items.map(i => (
+                  <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                    <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
+                    <span className="text-surface-900 font-medium">₹{i.amount}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="pt-2 border-t border-surface-200 flex justify-between text-sm font-semibold">
+              <span>Total</span>
+              <span>₹{doneData.splitSnapshot.order_total ?? parsed?.total}</span>
             </div>
-          )}
-          {split?.shared_items?.length > 0 && (
-            <div className="mb-2">
-              <p className="text-xs text-surface-500 mb-1">Shared</p>
-              {split.shared_items.map(i => (
-                <div key={i.sr} className="flex justify-between text-sm py-0.5">
-                  <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
-                  <span className="text-surface-900 font-medium">₹{i.amount}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="pt-2 border-t border-surface-200 flex justify-between text-sm font-semibold">
-            <span>Total paid</span>
-            <span>₹{parsed?.total}</span>
           </div>
-        </div>
+        )}
 
-        {/* Open in Splitwise */}
         <a
           href="https://secure.splitwise.com"
           target="_blank"
