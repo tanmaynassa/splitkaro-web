@@ -113,12 +113,12 @@ export default function Split({ user, flatmates }) {
 
   // Compute split
   const splitResult = useMemo(() => {
-    if (!parsed) return null
+    if (!parsed || !parsed.items?.length) return null
 
     let myTotal = 0, sharedTotal = 0
     const fmTotals = {}
     flatmates.forEach(f => { fmTotals[f.splitwise_user_id] = 0 })
-    const splitItems = [] // items split between specific people
+    const splitItems = []
 
     parsed.items.forEach(item => {
       const tag = tags[item.sr]
@@ -129,33 +129,27 @@ export default function Split({ user, flatmates }) {
       } else if (tag?.startsWith('split:')) {
         splitItems.push({ item, people: tag.split(':')[1].split(',') })
       } else {
-        // flatmate personal
         const fmId = parseInt(tag)
-        if (fmTotals[fmId] !== undefined) fmTotals[fmId] += item.amount
+        if (!isNaN(fmId) && fmTotals[fmId] !== undefined) fmTotals[fmId] += item.amount
       }
     })
 
-    // Determine who splits shared items
-    let sharedSplitters = 1 + flatmates.length // default: everyone
+    const numFlatmates = flatmates.length
+    let sharedSplitters = 1 + numFlatmates
     let sharedPool = sharedTotal + (parsed.extra_charges || 0)
 
     if (restAmong === 'custom' && restPeople.length > 0) {
       sharedSplitters = restPeople.length
-      if (restPeople.includes('mine')) sharedSplitters = restPeople.length
     }
 
     const sharedEach = sharedSplitters > 0 ? sharedPool / sharedSplitters : 0
 
-    // Build shares
     const shares = { mine: myTotal }
-    flatmates.forEach(f => {
-      shares[f.splitwise_user_id] = fmTotals[f.splitwise_user_id] || 0
-    })
+    flatmates.forEach(f => { shares[f.splitwise_user_id] = fmTotals[f.splitwise_user_id] || 0 })
 
-    // Add shared portion
     if (restAmong === 'everyone' || restPeople.length === 0) {
       shares.mine += sharedEach
-      flatmates.forEach(f => { shares[f.splitwise_user_id] += sharedEach })
+      flatmates.forEach(f => { shares[f.splitwise_user_id] = (shares[f.splitwise_user_id] || 0) + sharedEach })
     } else {
       restPeople.forEach(id => {
         if (id === 'mine') shares.mine += sharedEach
@@ -219,6 +213,7 @@ export default function Split({ user, flatmates }) {
 
       setDone(true)
       setDoneData(result)
+      sessionStorage.removeItem('splitkaro_parsed') // clear so reconnect doesn't re-show this bill
     } catch (e) {
       // Token expired or invalid — redirect to reconnect Splitwise
       if (e.message?.includes('401') || e.message?.includes('Not authenticated') || e.message?.includes('Unauthorized')) {
@@ -233,7 +228,15 @@ export default function Split({ user, flatmates }) {
     }
   }
 
-  if (!parsed) return null
+  if (!parsed) return (
+    <div className="max-w-lg mx-auto px-4 py-16 text-center">
+      <div className="animate-spin text-4xl mb-4">⏳</div>
+      <p className="text-surface-600">Loading your bill...</p>
+      <button onClick={() => navigate('/')} className="mt-6 text-sm text-surface-500 underline">
+        Go back home
+      </button>
+    </div>
+  )
 
   // Done screen
   if (done) {
