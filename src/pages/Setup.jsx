@@ -12,6 +12,9 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
   const [loadingFriends, setLoadingFriends] = useState(false)
   const [error, setError] = useState(null)
 
+  // Check if redirected due to expired token
+  const isReconnect = new URLSearchParams(window.location.search).get('reason') === 'reconnect'
+
   // Fetch all friends when entering flatmate step
   useEffect(() => {
     if (step === 'flatmates') {
@@ -116,15 +119,24 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
       {step === 'connect' && (
         <div className="text-center py-12">
           <div className="text-5xl mb-4">🔗</div>
-          <h2 className="text-2xl font-bold text-surface-900 mb-2">Connect Splitwise</h2>
+          <h2 className="text-2xl font-bold text-surface-900 mb-2">
+            {isReconnect ? 'Reconnect Splitwise' : 'Connect Splitwise'}
+          </h2>
+          {isReconnect && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+              Your session expired. Tap below to reconnect — takes 10 seconds.
+            </div>
+          )}
           <p className="text-surface-600 mb-8">
-            One-time setup. We'll use Splitwise to log your shared expenses.
+            {isReconnect
+              ? 'Your bill is saved. After reconnecting you can continue.'
+              : 'One-time setup. We\'ll use Splitwise to log your shared expenses.'}
           </p>
           <button
             onClick={connectSplitwise}
             className="px-8 py-3.5 bg-brand-600 text-white rounded-xl font-semibold text-base hover:bg-brand-700"
           >
-            Connect Splitwise
+            {isReconnect ? 'Reconnect Splitwise' : 'Connect Splitwise'}
           </button>
           {error && <p className="mt-4 text-red-600 text-sm">{error}</p>}
         </div>

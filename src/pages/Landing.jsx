@@ -43,6 +43,11 @@ export default function Landing({ user, flatmates }) {
       const data = await apiCall('/api/balances')
       setBalances(data)
     } catch (e) {
+      if (e.message?.includes('401')) {
+        // Token expired — clear and prompt reconnect
+        localStorage.removeItem('splitkaro_token')
+        localStorage.removeItem('splitkaro_user')
+      }
       // Silently fail — not critical
     }
   }

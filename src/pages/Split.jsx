@@ -220,6 +220,13 @@ export default function Split({ user, flatmates }) {
       setDone(true)
       setDoneData(result)
     } catch (e) {
+      // Token expired or invalid — redirect to reconnect Splitwise
+      if (e.message?.includes('401') || e.message?.includes('Not authenticated') || e.message?.includes('Unauthorized')) {
+        localStorage.removeItem('splitkaro_token')
+        localStorage.removeItem('splitkaro_user')
+        navigate('/setup?reason=reconnect')
+        return
+      }
       setError(e.message)
     } finally {
       setConfirming(false)
