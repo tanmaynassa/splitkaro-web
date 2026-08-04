@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { apiCall } from '../utils/api'
 
-export default function AuthCallback({ saveUser }) {
+export default function AuthCallback({ saveUser, saveFlatmates }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [error, setError] = useState(null)
@@ -23,12 +23,31 @@ export default function AuthCallback({ saveUser }) {
           skipAuth: true,
         })
 
-        // Store token and user info
         localStorage.setItem('splitkaro_token', data.token)
         saveUser({ name: data.name, id: data.user_id })
 
-        // Go to flatmate setup
-        navigate('/setup')
+        // Check if flatmates already saved (reconnect scenario)
+        const existingFlatmates = localStorage.getItem('splitkaro_flatmates')
+
+        if (existingFlatmates && JSON.parse(existingFlatmates).length > 0) {
+          // Reconnect — re-save flatmates to backend with new token, skip setup
+          try {
+            const flatmates = JSON.parse(existingFlatmates)
+            await apiCall('/api/flatmates', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ flatmates }),
+            })
+            // Check if they had a bill in progress
+            const pending = sessionStorage.getItem('splitkaro_parsed')
+            navigate(pending ? '/split' : '/')
+          } catch (e) {
+            // If re-save fails, go to setup anyway
+            navigate('/setup')
+          }
+        } else {
+          navigate('/setup')
+        }
       } catch (e) {
         setError(e.message)
       }
@@ -43,10 +62,7 @@ export default function AuthCallback({ saveUser }) {
         <div className="text-5xl mb-4">❌</div>
         <h2 className="text-xl font-bold text-surface-900 mb-2">Connection failed</h2>
         <p className="text-surface-500 mb-6">{error}</p>
-        <button
-          onClick={() => navigate('/setup')}
-          className="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium"
-        >
+        <button onClick={() => navigate('/setup')} className="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium">
           Try again
         </button>
       </div>
@@ -57,6 +73,7 @@ export default function AuthCallback({ saveUser }) {
     <div className="max-w-lg mx-auto px-4 py-16 text-center">
       <div className="animate-spin text-5xl mb-4">⏳</div>
       <p className="text-surface-800 font-medium">Connecting to Splitwise...</p>
+      <p className="text-surface-500 text-sm mt-2">Taking you back to your bill...</p>
     </div>
   )
 }

@@ -238,18 +238,62 @@ export default function Split({ user, flatmates }) {
   // Done screen
   if (done) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-12 text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold text-surface-900 mb-2">Logged to Splitwise!</h2>
-        {doneData?.owes && Object.entries(doneData.owes).map(([name, amount]) => (
-          <p key={name} className="text-lg text-surface-800">
-            {name} owes you <span className="font-bold text-brand-600">₹{amount}</span>
-          </p>
-        ))}
-        <div className="mt-8 flex gap-3 justify-center">
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="text-center mb-6">
+          <div className="text-6xl mb-4">✅</div>
+          <h2 className="text-2xl font-bold text-surface-900 mb-2">Logged to Splitwise!</h2>
+          {doneData?.owes && Object.entries(doneData.owes).map(([name, amount]) => (
+            <p key={name} className="text-lg text-surface-800">
+              {name} owes you <span className="font-bold text-brand-600">₹{amount}</span>
+            </p>
+          ))}
+        </div>
+
+        {/* Full breakdown */}
+        <div className="bg-surface-50 border border-surface-200 rounded-xl p-4 mb-6 text-left">
+          <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Bill breakdown</p>
+          {split?.personal_items?.length > 0 && (
+            <div className="mb-2">
+              <p className="text-xs text-surface-500 mb-1">Your items</p>
+              {split.personal_items.map(i => (
+                <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                  <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
+                  <span className="text-surface-900 font-medium">₹{i.amount}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {split?.shared_items?.length > 0 && (
+            <div className="mb-2">
+              <p className="text-xs text-surface-500 mb-1">Shared</p>
+              {split.shared_items.map(i => (
+                <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                  <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
+                  <span className="text-surface-900 font-medium">₹{i.amount}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="pt-2 border-t border-surface-200 flex justify-between text-sm font-semibold">
+            <span>Total paid</span>
+            <span>₹{parsed?.total}</span>
+          </div>
+        </div>
+
+        {/* Open in Splitwise */}
+        <a
+          href="https://secure.splitwise.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2 py-3 border border-surface-200 rounded-xl text-sm text-surface-700 hover:bg-surface-50 mb-3"
+        >
+          View in Splitwise →
+        </a>
+
+        <div className="flex gap-3">
           <button
             onClick={() => { setDone(false); navigate('/') }}
-            className="px-6 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700"
+            className="flex-1 px-6 py-3 bg-brand-600 text-white rounded-xl font-medium hover:bg-brand-700"
           >
             New bill
           </button>
@@ -320,22 +364,34 @@ export default function Split({ user, flatmates }) {
       {/* Item list */}
       <div className="space-y-2">
         {parsed.items.map(item => (
-          <div key={item.sr} className="border border-surface-200 rounded-xl p-3 flex items-center justify-between">
+          <div key={item.sr} className={`border rounded-xl p-3 flex items-center justify-between ${
+            item.amount === 0 ? 'border-green-200 bg-green-50' : 'border-surface-200'
+          }`}>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-surface-900 text-sm truncate">{item.name}</p>
-              <p className="text-xs text-surface-500">₹{item.amount}</p>
+              {item.amount === 0
+                ? <p className="text-xs text-green-600 font-medium">Free item 🎉</p>
+                : <p className="text-xs text-surface-500">₹{item.amount}</p>
+              }
             </div>
             <div className="flex items-center gap-2 ml-3">
-              <button
-                onClick={() => cycleTag(item.sr)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${getTagColor(tags[item.sr])}`}
-              >
-                {getTagLabel(tags[item.sr])}
-              </button>
-              {flatmates.length > 0 && (
+              {item.amount > 0 && (
+                <button
+                  onClick={() => cycleTag(item.sr)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${getTagColor(tags[item.sr])}`}
+                >
+                  {getTagLabel(tags[item.sr])}
+                </button>
+              )}
+              {item.amount === 0 && (
+                <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                  Free
+                </span>
+              )}
+              {flatmates.length > 0 && item.amount > 0 && (
                 <button
                   onClick={() => openSplitModal(item.sr)}
-                  className="w-7 h-7 rounded-lg bg-surface-100 text-surface-800 text-xs flex items-center justify-center hover:bg-surface-200"
+                  className="w-9 h-9 rounded-lg bg-surface-100 text-surface-700 text-sm font-medium flex items-center justify-center hover:bg-surface-200 active:bg-surface-300"
                   title="Split between specific people"
                 >
                   +

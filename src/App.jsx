@@ -34,7 +34,7 @@ export default function App() {
           <Route path="/" element={<Landing user={user} flatmates={flatmates} />} />
           <Route path="/split" element={<Split user={user} flatmates={flatmates} />} />
           <Route path="/setup" element={<Setup user={user} saveUser={saveUser} saveFlatmates={saveFlatmates} />} />
-          <Route path="/auth/callback" element={<AuthCallback saveUser={saveUser} />} />
+          <Route path="/auth/callback" element={<AuthCallback saveUser={saveUser} saveFlatmates={saveFlatmates} />} />
         </Routes>
         <FeedbackButton />
       </div>

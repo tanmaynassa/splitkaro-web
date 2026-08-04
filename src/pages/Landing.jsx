@@ -208,8 +208,14 @@ export default function Landing({ user, flatmates }) {
           <>
             <div className="text-5xl mb-4">📄</div>
             <p className="text-surface-800 font-semibold text-lg">Upload grocery invoice</p>
-            <p className="text-surface-500 text-sm mt-2">Tap here or drag & drop your PDF</p>
-            <p className="text-surface-500 text-xs mt-3">Works with Zepto & Swiggy Instamart</p>
+            <p className="text-surface-500 text-sm mt-2">Drag & drop or tap to select</p>
+            <button
+              onClick={(e) => { e.stopPropagation(); fileRef.current?.click() }}
+              className="mt-4 px-5 py-2.5 bg-brand-600 text-white rounded-xl text-sm font-medium hover:bg-brand-700"
+            >
+              Browse files
+            </button>
+            <p className="text-surface-500 text-xs mt-3">Works with Zepto, Blinkit & Swiggy Instamart</p>
           </>
         )}
       </div>
