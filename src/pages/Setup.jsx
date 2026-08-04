@@ -24,11 +24,19 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
 
   const fetchAllFriends = async () => {
     setLoadingFriends(true)
+    setError(null)
     try {
       const data = await apiCall('/api/friends')
       setAllFriends(data.friends || [])
     } catch (e) {
-      setError('Could not load friends. Try again.')
+      if (e.message?.includes('401')) {
+        // Token issue — redirect to reconnect
+        localStorage.removeItem('splitkaro_token')
+        localStorage.removeItem('splitkaro_user')
+        navigate('/setup?reason=reconnect')
+      } else {
+        setError('Could not load friends. Check your connection and try again.')
+      }
     } finally {
       setLoadingFriends(false)
     }
@@ -177,7 +185,17 @@ export default function Setup({ user, saveUser, saveFlatmates }) {
             />
           </div>
 
-          {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+          {error && (
+            <div className="mb-4">
+              <p className="text-red-600 text-sm mb-2">{error}</p>
+              <button
+                onClick={fetchAllFriends}
+                className="px-4 py-2 bg-brand-600 text-white text-sm rounded-xl font-medium"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {/* Friends list / dropdown */}
           {!loadingFriends && (
