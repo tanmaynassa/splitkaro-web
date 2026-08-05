@@ -199,9 +199,6 @@ export default function Split({ user, flatmates }) {
         }),
       })
 
-      // Save split snapshot for done screen before state changes
-      const splitSnapshot = splitResult
-
       // Save to local history
       try {
         const existing = JSON.parse(localStorage.getItem('sk_history') || '[]')
@@ -215,7 +212,7 @@ export default function Split({ user, flatmates }) {
       } catch (e) {}
 
       sessionStorage.removeItem('splitkaro_parsed')
-      setDoneData({ ...result, splitSnapshot })
+      setDoneData(result)
       setDone(true)
     } catch (e) {
       // Token expired or invalid — redirect to reconnect Splitwise
@@ -255,35 +252,59 @@ export default function Split({ user, flatmates }) {
           ))}
         </div>
 
-        {/* Breakdown from snapshot */}
-        {doneData?.splitSnapshot && (
+        {/* Breakdown from backend */}
+        {doneData?.breakdown && (
           <div className="bg-surface-50 border border-surface-200 rounded-xl p-4 mb-6 text-left">
             <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">Bill breakdown</p>
-            {(doneData.splitSnapshot.personal_items || []).length > 0 && (
-              <div className="mb-2">
+
+            {doneData.breakdown.my_items?.length > 0 && (
+              <div className="mb-3">
                 <p className="text-xs text-surface-500 mb-1">Your items</p>
-                {doneData.splitSnapshot.personal_items.map(i => (
-                  <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                {doneData.breakdown.my_items.map((i, idx) => (
+                  <div key={idx} className="flex justify-between text-sm py-0.5">
                     <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
                     <span className="text-surface-900 font-medium">₹{i.amount}</span>
                   </div>
                 ))}
               </div>
             )}
-            {(doneData.splitSnapshot.shared_items || []).length > 0 && (
-              <div className="mb-2">
+
+            {Object.entries(doneData.breakdown.flatmate_items || {}).map(([name, items]) => (
+              items.length > 0 && (
+                <div key={name} className="mb-3">
+                  <p className="text-xs text-surface-500 mb-1">{name}'s items</p>
+                  {items.map((i, idx) => (
+                    <div key={idx} className="flex justify-between text-sm py-0.5">
+                      <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
+                      <span className="text-surface-900 font-medium">₹{i.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              )
+            ))}
+
+            {doneData.breakdown.shared_items?.length > 0 && (
+              <div className="mb-3">
                 <p className="text-xs text-surface-500 mb-1">Shared</p>
-                {doneData.splitSnapshot.shared_items.map(i => (
-                  <div key={i.sr} className="flex justify-between text-sm py-0.5">
+                {doneData.breakdown.shared_items.map((i, idx) => (
+                  <div key={idx} className="flex justify-between text-sm py-0.5">
                     <span className="text-surface-700 truncate max-w-[200px]">{i.name}</span>
                     <span className="text-surface-900 font-medium">₹{i.amount}</span>
                   </div>
                 ))}
               </div>
             )}
-            <div className="pt-2 border-t border-surface-200 flex justify-between text-sm font-semibold">
+
+            {doneData.breakdown.extra_charges > 0 && (
+              <div className="flex justify-between text-sm py-0.5 text-surface-500">
+                <span>Delivery/fees</span>
+                <span>₹{doneData.breakdown.extra_charges}</span>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-surface-200 flex justify-between text-sm font-semibold mt-1">
               <span>Total</span>
-              <span>₹{doneData.splitSnapshot.order_total ?? parsed?.total}</span>
+              <span>₹{doneData.breakdown.order_total}</span>
             </div>
           </div>
         )}
